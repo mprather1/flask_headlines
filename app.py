@@ -1,23 +1,23 @@
 import feedparser
-
 from flask import Flask
+from flask_json import FlaskJSON, JsonError, json_response, as_json
+import json
 
 app = Flask(__name__)
+FlaskJSON(app)
 
 BBC_FEED = "http://feeds.bbci.co.uk/news/rss.xml"
 
 @app.route('/')
 def get_news():
-  feed = feedparser.parse(BBC_FEED)
-  first_article = feed['entries'][0]
-  return """<html
-    <body>
-      <h1> BBC Headlines </h1>
-      <b>{0}</b> <br/>
-      <i>{1}</i> <br/>
-      <p>{2}</p> <br/>
-    </body>
-  </html>""".format(first_article.get("title"), first_article.get("published"), first_article.get("summary"))
-  
+  arr = []
+  feeds = feedparser.parse(BBC_FEED)
+  for feed in feeds['entries']:
+    feed = json.dumps({"published": feed.get("published"), "title": feed.get('title'), "summary": feed.get("summary")})
+    arr.append(feed)
+    
+  return json_response(feeds=set(arr))
+
+
 if __name__ == "__main__":
   app.run(port=8000, host='0.0.0.0', debug=True)
